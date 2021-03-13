@@ -37,6 +37,7 @@ function run() {
             }
             else {
                 const magickPath = yield tc.downloadTool(LINUX_BIN);
+                console.log('magickpath: ', magickPath);
                 core.addPath(magickPath);
             }
         }

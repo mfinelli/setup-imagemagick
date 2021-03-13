@@ -16,6 +16,7 @@ export async function run(): Promise<void> {
       return
     } else {
       const magickPath = await tc.downloadTool(LINUX_BIN)
+      console.log('magickpath: ', magickPath)
       core.addPath(magickPath)
     }
   } catch(error) {
