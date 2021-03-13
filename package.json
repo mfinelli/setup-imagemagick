@@ -2,8 +2,10 @@
   "name": "setup-imagemagick",
   "version": "0.1.0",
   "description": "GitHub action to setup imagemagick",
-  "main": "index.js",
+  "main": "lib/index.js",
   "scripts": {
+    "build": "tsc",
+    "package": "ncc build --license licenses.txt",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -18,5 +20,14 @@
   "bugs": {
     "url": "https://github.com/mfinelli/setup-imagemagick/issues"
   },
-  "homepage": "https://github.com/mfinelli/setup-imagemagick#readme"
+  "homepage": "https://github.com/mfinelli/setup-imagemagick#readme",
+  "dependencies": {
+    "@actions/core": "^1.2.6",
+    "@actions/tool-cache": "^1.6.1"
+  },
+  "devDependencies": {
+    "@types/node": "^14.14.34",
+    "@vercel/ncc": "^0.27.0",
+    "typescript": "^4.2.3"
+  }
 }
