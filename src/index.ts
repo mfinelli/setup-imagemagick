@@ -3,7 +3,8 @@ import * as tc from '@actions/tool-cache'
 
 const LINUX_BIN = 'https://download.imagemagick.org/ImageMagick/download/binaries/magick'
 
-export async function run(): Promise<void> {
+async function run(): Promise<void> {
+  console.log('In the run function')
   try {
     if (process.platform === 'win32') {
       // todo: url changes as new versions are released and old versions do not
@@ -15,6 +16,7 @@ export async function run(): Promise<void> {
       core.setFailed('Not currently supported on macos runners')
       return
     } else {
+      console.log('got linux platform')
       const magickPath = await tc.downloadTool(LINUX_BIN)
       console.log('magickpath: ', magickPath)
       core.addPath(magickPath)
@@ -23,3 +25,5 @@ export async function run(): Promise<void> {
     core.setFailed(error.message)
   }
 }
+
+run()
