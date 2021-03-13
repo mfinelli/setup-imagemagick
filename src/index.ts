@@ -1,4 +1,8 @@
 import * as core from '@actions/core'
+import * as exec from '@actions/exec'
+import * as io from '@actions/io'
+import * as os from 'os'
+import * as path from 'path'
 import * as tc from '@actions/tool-cache'
 
 const LINUX_BIN = 'https://download.imagemagick.org/ImageMagick/download/binaries/magick'
@@ -15,10 +19,13 @@ async function run(): Promise<void> {
       core.setFailed('Not currently supported on macos runners')
       return
     } else {
+      const binPath = `${os.homedir}/bin`
+      await io.mkdirP(binPath)
       const magickPath = await tc.downloadTool(LINUX_BIN)
-      core.debug("magicpath: " + magickPath)
-      core.setOutput('magickpath', magickPath)
-      core.addPath(magickPath)
+      await io.mv(magickPath, `${binPath}/magick`)
+      exec.exec('chmod', ['+x', `${binPath}/magick`])
+
+      core.addPath(binPath)
     }
   } catch(error) {
     core.setFailed(error.message)

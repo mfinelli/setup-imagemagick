@@ -18,6 +18,9 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 const core = __nccwpck_require__(186);
+const exec = __nccwpck_require__(514);
+const io = __nccwpck_require__(436);
+const os = __nccwpck_require__(87);
 const tc = __nccwpck_require__(784);
 const LINUX_BIN = 'https://download.imagemagick.org/ImageMagick/download/binaries/magick';
 function run() {
@@ -35,10 +38,12 @@ function run() {
                 return;
             }
             else {
+                const binPath = `${os.homedir}/bin`;
+                yield io.mkdirP(binPath);
                 const magickPath = yield tc.downloadTool(LINUX_BIN);
-                core.debug("magicpath: " + magickPath);
-                core.setOutput('magickpath', magickPath);
-                core.addPath(magickPath);
+                yield io.mv(magickPath, `${binPath}/magick`);
+                exec.exec('chmod', ['+x', `${binPath}/magick`]);
+                core.addPath(binPath);
             }
         }
         catch (error) {
