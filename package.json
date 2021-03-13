@@ -1,0 +1,22 @@
+{
+  "name": "setup-imagemagick",
+  "version": "0.1.0",
+  "description": "GitHub action to setup imagemagick",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mfinelli/setup-imagemagick.git"
+  },
+  "keywords": [
+    "imagemagick"
+  ],
+  "author": "Mario Finelli",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/mfinelli/setup-imagemagick/issues"
+  },
+  "homepage": "https://github.com/mfinelli/setup-imagemagick#readme"
+}
