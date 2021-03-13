@@ -4,7 +4,7 @@
   "description": "GitHub action to setup imagemagick",
   "main": "lib/index.js",
   "scripts": {
-    "all": "npm run build && npm run package",
+    "all": "npm run lint && npm run build && npm run package",
     "build": "tsc",
     "fix": "prettier --write **/*.{ts,json,md}",
     "lint": "prettier --check **/*.{ts,json,md}",

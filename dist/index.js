@@ -22,27 +22,25 @@ const exec = __nccwpck_require__(514);
 const io = __nccwpck_require__(436);
 const os = __nccwpck_require__(87);
 const tc = __nccwpck_require__(784);
-const LINUX_BIN = 'https://download.imagemagick.org/ImageMagick/download/binaries/magick';
+const LINUX_BIN = "https://download.imagemagick.org/ImageMagick/download/binaries/magick";
 function run() {
     return __awaiter(this, void 0, void 0, function* () {
         try {
-            if (process.platform === 'win32') {
+            if (process.platform === "win32") {
                 // todo: url changes as new versions are released and old versions do not
                 //       remain available
-                core.setFailed('Not currently supported on windows runners');
-                return;
+                core.setFailed("Not currently supported on windows runners");
             }
-            else if (process.platform === 'darwin') {
+            else if (process.platform === "darwin") {
                 // todo: homebrew install imagemagick
-                core.setFailed('Not currently supported on macos runners');
-                return;
+                core.setFailed("Not currently supported on macos runners");
             }
             else {
                 const binPath = `${os.homedir}/bin`;
                 yield io.mkdirP(binPath);
                 const magickPath = yield tc.downloadTool(LINUX_BIN);
                 yield io.mv(magickPath, `${binPath}/magick`);
-                exec.exec('chmod', ['+x', `${binPath}/magick`]);
+                exec.exec("chmod", ["+x", `${binPath}/magick`]);
                 core.addPath(binPath);
             }
         }
