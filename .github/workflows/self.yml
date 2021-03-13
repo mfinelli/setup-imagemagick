@@ -1,0 +1,15 @@
+---
+name: Self
+on: [push, pull_request]
+
+jobs:
+  main:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest]
+    steps:
+      - uses: actions/checkout@v2
+      - uses: ./
+      - run: magick -size 100x30 xc:white -draw 'text 15,15 "hello, world"' test.png
