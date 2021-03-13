@@ -22,7 +22,6 @@ const tc = __nccwpck_require__(784);
 const LINUX_BIN = 'https://download.imagemagick.org/ImageMagick/download/binaries/magick';
 function run() {
     return __awaiter(this, void 0, void 0, function* () {
-        console.log('In the run function');
         try {
             if (process.platform === 'win32') {
                 // todo: url changes as new versions are released and old versions do not
@@ -36,9 +35,9 @@ function run() {
                 return;
             }
             else {
-                console.log('got linux platform');
                 const magickPath = yield tc.downloadTool(LINUX_BIN);
-                console.log('magickpath: ', magickPath);
+                core.debug("magicpath: " + magickPath);
+                core.setOutput('magickpath', magickPath);
                 core.addPath(magickPath);
             }
         }
