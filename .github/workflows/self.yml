@@ -13,6 +13,4 @@ jobs:
       - uses: actions/checkout@v2
       - uses: ./
         id: self
-      - run: ls ${{ steps.self.outputs.magickpath }}
-      - run: file ${{ steps.self.outputs.magickpath }}
       - run: magick -size 100x30 xc:white -draw 'text 15,15 "hello, world"' test.png
