@@ -31,8 +31,7 @@ async function run(): Promise<void> {
       //       remain available
       core.setFailed("Not currently supported on windows runners");
     } else if (process.platform === "darwin") {
-      // todo: homebrew install imagemagick
-      core.setFailed("Not currently supported on macos runners");
+      exec.exec("brew", ["install", "imagemagick"]);
     } else {
       const binPath = `${os.homedir}/bin`;
       await io.mkdirP(binPath);
