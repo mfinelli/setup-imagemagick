@@ -11,6 +11,15 @@ jobs:
         os: [macos-latest, ubuntu-latest]
     steps:
       - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
+        with:
+          node-version: '14'
+
+      # ensure that a PR that doesn't update the dist actually uses the
+      # updated code when running the self step
+      - run: npm ci && npm run build && npm run package
+        if: github.event_name == 'pull_request'
+
       - uses: ./
         id: self
       - run: magick test.png test.gif
