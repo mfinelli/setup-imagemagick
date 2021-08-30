@@ -58,7 +58,12 @@ function run() {
             }
         }
         catch (error) {
-            core.setFailed(error.message);
+            if (error instanceof Error) {
+                core.setFailed(error.message);
+            }
+            else {
+                core.setFailed("action failed and didn't return an error type!");
+            }
         }
     });
 }
