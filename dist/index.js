@@ -36,7 +36,6 @@ const exec = __nccwpck_require__(514);
 const io = __nccwpck_require__(436);
 const os = __nccwpck_require__(37);
 const tc = __nccwpck_require__(784);
-const LINUX_BIN = "https://download.imagemagick.org/ImageMagick/download/binaries/magick";
 function run() {
     return __awaiter(this, void 0, void 0, function* () {
         try {
@@ -51,7 +50,9 @@ function run() {
             else {
                 const binPath = `${os.homedir}/bin`;
                 yield io.mkdirP(binPath);
-                const magickPath = yield tc.downloadTool(LINUX_BIN);
+                const linuxBinUrlInput = core.getInput("linux-bin-url");
+                core.info(`## Linux Binary URL: ${linuxBinUrlInput}`);
+                const magickPath = yield tc.downloadTool(linuxBinUrlInput);
                 yield io.mv(magickPath, `${binPath}/magick`);
                 exec.exec("chmod", ["+x", `${binPath}/magick`]);
                 core.addPath(binPath);

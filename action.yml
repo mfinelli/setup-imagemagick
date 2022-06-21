@@ -2,6 +2,11 @@
 name: Setup ImageMagick
 description: Download the latest ImageMagick binary and add it to the PATH
 author: Mario Finelli
+inputs:
+  linux-bin-url:
+    description: "URL to download ImageMagick"
+    default: "https://imagemagick.org/archive/binaries/magick"
+    required: false
 runs:
   using: node12
   main: dist/index.js

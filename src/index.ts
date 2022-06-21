@@ -18,11 +18,7 @@ import * as core from "@actions/core";
 import * as exec from "@actions/exec";
 import * as io from "@actions/io";
 import * as os from "os";
-import * as path from "path";
 import * as tc from "@actions/tool-cache";
-
-const LINUX_BIN =
-  "https://download.imagemagick.org/ImageMagick/download/binaries/magick";
 
 async function run(): Promise<void> {
   try {
@@ -35,7 +31,9 @@ async function run(): Promise<void> {
     } else {
       const binPath = `${os.homedir}/bin`;
       await io.mkdirP(binPath);
-      const magickPath = await tc.downloadTool(LINUX_BIN);
+      const linuxBinUrlInput = core.getInput("linux-bin-url");
+      core.info(`## Linux Binary URL: ${linuxBinUrlInput}`);
+      const magickPath = await tc.downloadTool(linuxBinUrlInput);
       await io.mv(magickPath, `${binPath}/magick`);
       exec.exec("chmod", ["+x", `${binPath}/magick`]);
 
