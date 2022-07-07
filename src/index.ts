@@ -21,8 +21,7 @@ import * as os from "os";
 import * as path from "path";
 import * as tc from "@actions/tool-cache";
 
-const LINUX_BIN =
-  "https://download.imagemagick.org/ImageMagick/download/binaries/magick";
+const LINUX_BIN = "https://imagemagick.org/archive/binaries/magick";
 
 async function run(): Promise<void> {
   try {
