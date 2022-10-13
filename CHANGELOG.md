@@ -1,6 +1,10 @@
 # setup-imagemagick changelog
 
-## v1.1.1 (2022/0707)
+## v2.0.0 (2022/10/12)
+
+Upgrade to node 16
+
+## v1.1.1 (2022/07/07)
 
 Fix upstream download path
 
