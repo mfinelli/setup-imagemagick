@@ -13,7 +13,7 @@ jobs:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3.5.0
         with:
-          node-version: '14'
+          node-version: '16'
 
       # ensure that a PR that doesn't update the dist actually uses the
       # updated code when running the self step

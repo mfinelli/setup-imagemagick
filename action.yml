@@ -3,7 +3,7 @@ name: Setup ImageMagick
 description: Download the latest ImageMagick binary and add it to the PATH
 author: Mario Finelli
 runs:
-  using: node12
+  using: node16
   main: dist/index.js
 branding:
   icon: image
