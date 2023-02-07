@@ -15,6 +15,9 @@ jobs:
         with:
           node-version: '16'
 
+      - run: sudo apt-get install -y libfuse2
+        if: matrix.os == 'ubuntu-latest'
+
       # ensure that a PR that doesn't update the dist actually uses the
       # updated code when running the self step
       - run: npm ci && npm run build && npm run package
