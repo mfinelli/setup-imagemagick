@@ -1,5 +1,9 @@
 # setup-imagemagick changelog
 
+## v2.0.1 (2023/09/07)
+
+Upgrade dependencies
+
 ## v2.0.0 (2022/10/12)
 
 Upgrade to node 16
