@@ -1,5 +1,9 @@
 # setup-imagemagick changelog
 
+## unreleased
+
+Add optional `cache` parameter to cache downloaded binary (Ubuntu only)
+
 ## v3.0.0 (2023/09/18)
 
 Upgrade to node 20
