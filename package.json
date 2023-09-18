@@ -1,6 +1,6 @@
 {
   "name": "setup-imagemagick",
-  "version": "2.0.1",
+  "version": "3.0.0",
   "description": "GitHub action to setup imagemagick",
   "main": "lib/index.js",
   "scripts": {
