@@ -52,7 +52,7 @@ function run() {
             else {
                 let installLibfuse2 = core.getBooleanInput("install-libfuse2");
                 if (installLibfuse2) {
-                    exec.exec("sudo", ["apt-get", "install", "-y", "libfuse2"]);
+                    yield exec.exec("sudo", ["apt-get", "install", "-y", "libfuse2"]);
                 }
                 const binPath = `${os.homedir}/bin`;
                 core.addPath(binPath);
@@ -65,7 +65,6 @@ function run() {
                 if (doCache) {
                     core.info("Attempting to retrieve from the cache: " + cacheKey);
                     cacheRestored = yield cache.restoreCache(paths.slice(), cacheKey);
-                    core.info("response from cache: " + cacheRestored);
                     if (cacheRestored !== undefined) {
                         core.info("Restored imagemagick from the cache");
                         return;
