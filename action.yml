@@ -7,6 +7,10 @@ inputs:
     description: Cache the magick binary (ubuntu only)
     required: false
     default: true
+  install-libfuse2:
+    description: Ensure libfuse2 is installed (Ubuntu only)
+    required: false
+    default: true
 runs:
   using: node20
   main: dist/index.js
