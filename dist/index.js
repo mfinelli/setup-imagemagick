@@ -57,9 +57,10 @@ function run() {
                 const month = date.toLocaleString("default", { month: "long" });
                 const paths = [binPath + "/magick"];
                 const cacheKey = "imagemagick-" + os.platform() + "-" + month;
+                const restoreKeys = ["imagemagick-" + os.platform()];
                 if (doCache) {
                     core.info("Attempting to retrieve from the cache: " + month);
-                    const cacheRestored = yield cache.restoreCache(paths, cacheKey, []);
+                    const cacheRestored = yield cache.restoreCache(paths, cacheKey, restoreKeys);
                     core.info("response from cache: " + cacheRestored);
                     if (cacheRestored !== undefined) {
                         core.info("Restored imagemagick from the cache");
