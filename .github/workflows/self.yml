@@ -8,7 +8,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [macos-latest, ubuntu-latest]
+        os: [macos-latest, ubuntu-latest, ubuntu-20.04, ubuntu-22.04]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v3
@@ -27,6 +27,7 @@ jobs:
         id: self
         with:
           cache: false
+          install-libfuse2: false
       - run: magick test.png test.gif
 
   cache:
@@ -46,4 +47,29 @@ jobs:
 
       - uses: ./
         id: self
+        with:
+          install-libfuse2: false
+      - run: magick test.png test.gif
+
+  libfuse2:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, ubuntu-20.04, ubuntu-22.04]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v3
+        with:
+          node-version: '20'
+
+      # ensure that a PR that doesn't update the dist actually uses the
+      # updated code when running the self step
+      - run: npm ci && npm run build && npm run package
+        if: github.event_name == 'pull_request'
+
+      - uses: ./
+        id: self
+        with:
+          cache: false
       - run: magick test.png test.gif
