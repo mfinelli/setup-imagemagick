@@ -73,7 +73,7 @@ function run() {
                 const magickPath = yield tc.downloadTool(LINUX_BIN);
                 yield io.mv(magickPath, `${binPath}/magick`);
                 exec.exec("chmod", ["+x", `${binPath}/magick`]);
-                if (doCache && cacheRestored !== undefined) {
+                if (doCache && cacheRestored === undefined) {
                     core.info("Saving magick binary to the cache: " + month);
                     const cacheId = yield cache.saveCache(paths, cacheKey);
                 }

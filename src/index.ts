@@ -62,7 +62,7 @@ async function run(): Promise<void> {
       await io.mv(magickPath, `${binPath}/magick`);
       exec.exec("chmod", ["+x", `${binPath}/magick`]);
 
-      if (doCache && cacheRestored !== undefined) {
+      if (doCache && cacheRestored === undefined) {
         core.info("Saving magick binary to the cache: " + month);
         const cacheId = await cache.saveCache(paths, cacheKey);
       }
