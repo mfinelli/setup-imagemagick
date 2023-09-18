@@ -25,4 +25,25 @@ jobs:
 
       - uses: ./
         id: self
+        with:
+          cache: false
+      - run: magick test.png test.gif
+
+  cache:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v3
+        with:
+          node-version: '20'
+
+      - run: sudo apt-get install -y libfuse2
+
+      # ensure that a PR that doesn't update the dist actually uses the
+      # updated code when running the self step
+      - run: npm ci && npm run build && npm run package
+        if: github.event_name == 'pull_request'
+
+      - uses: ./
+        id: self
       - run: magick test.png test.gif
