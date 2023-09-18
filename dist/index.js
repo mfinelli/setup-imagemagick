@@ -58,9 +58,10 @@ function run() {
                 const paths = [binPath + "/magick"];
                 const cacheKey = "imagemagick-" + os.platform() + "-" + month;
                 const restoreKeys = ["imagemagick-" + os.platform()];
+                let cacheRestored = undefined;
                 if (doCache) {
                     core.info("Attempting to retrieve from the cache: " + cacheKey);
-                    const cacheRestored = yield cache.restoreCache(paths, cacheKey, restoreKeys);
+                    cacheRestored = yield cache.restoreCache(paths, cacheKey, restoreKeys);
                     core.info("response from cache: " + cacheRestored);
                     if (cacheRestored !== undefined) {
                         core.info("Restored imagemagick from the cache");
@@ -72,7 +73,7 @@ function run() {
                 const magickPath = yield tc.downloadTool(LINUX_BIN);
                 yield io.mv(magickPath, `${binPath}/magick`);
                 exec.exec("chmod", ["+x", `${binPath}/magick`]);
-                if (doCache) {
+                if (doCache && cacheRestored !== undefined) {
                     core.info("Saving magick binary to the cache: " + month);
                     const cacheId = yield cache.saveCache(paths, cacheKey);
                 }

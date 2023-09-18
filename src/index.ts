@@ -42,14 +42,11 @@ async function run(): Promise<void> {
       const paths = [binPath + "/magick"];
       const cacheKey = "imagemagick-" + os.platform() + "-" + month;
       const restoreKeys = ["imagemagick-" + os.platform()];
+      let cacheRestored = undefined;
 
       if (doCache) {
         core.info("Attempting to retrieve from the cache: " + cacheKey);
-        const cacheRestored = await cache.restoreCache(
-          paths,
-          cacheKey,
-          restoreKeys,
-        );
+        cacheRestored = await cache.restoreCache(paths, cacheKey, restoreKeys);
 
         core.info("response from cache: " + cacheRestored);
 
@@ -65,7 +62,7 @@ async function run(): Promise<void> {
       await io.mv(magickPath, `${binPath}/magick`);
       exec.exec("chmod", ["+x", `${binPath}/magick`]);
 
-      if (doCache) {
+      if (doCache && cacheRestored !== undefined) {
         core.info("Saving magick binary to the cache: " + month);
         const cacheId = await cache.saveCache(paths, cacheKey);
       }
