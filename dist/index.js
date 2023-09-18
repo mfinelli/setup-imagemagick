@@ -60,6 +60,7 @@ function run() {
                 if (doCache) {
                     core.info("Attempting to retrieve from the cache: " + month);
                     const cacheRestored = yield cache.restoreCache(paths, cacheKey, []);
+                    core.info("response from cache: " + cacheRestored);
                     if (cacheRestored !== undefined) {
                         core.info("Restored imagemagick from the cache");
                         return;
