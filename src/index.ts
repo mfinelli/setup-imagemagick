@@ -41,12 +41,11 @@ async function run(): Promise<void> {
       const month = date.toLocaleString("default", { month: "long" });
       const paths = [binPath + "/magick"];
       const cacheKey = "imagemagick-" + os.platform() + "-" + month;
-      const restoreKeys = ["imagemagick-" + os.platform()];
       let cacheRestored = undefined;
 
       if (doCache) {
         core.info("Attempting to retrieve from the cache: " + cacheKey);
-        cacheRestored = await cache.restoreCache(paths, cacheKey, restoreKeys);
+        cacheRestored = await cache.restoreCache(paths.slice(), cacheKey);
 
         core.info("response from cache: " + cacheRestored);
 
