@@ -52,8 +52,6 @@ async function run(): Promise<void> {
         core.info("Attempting to retrieve from the cache: " + cacheKey);
         cacheRestored = await cache.restoreCache(paths.slice(), cacheKey);
 
-        core.info("response from cache: " + cacheRestored);
-
         if (cacheRestored !== undefined) {
           core.info("Restored imagemagick from the cache");
           return;
