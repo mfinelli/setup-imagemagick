@@ -53,11 +53,13 @@ async function run(): Promise<void> {
       }
 
       await io.mkdirP(binPath);
+      core.info("Downloading magick from: " + LINUX_BIN);
       const magickPath = await tc.downloadTool(LINUX_BIN);
       await io.mv(magickPath, `${binPath}/magick`);
       exec.exec("chmod", ["+x", `${binPath}/magick`]);
 
       if (doCache) {
+        core.info("Saving magick binary to the cache: " + month);
         const cacheId = await cache.saveCache(paths, cacheKey);
       }
     }

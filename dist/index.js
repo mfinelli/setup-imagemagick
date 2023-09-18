@@ -66,10 +66,12 @@ function run() {
                     }
                 }
                 yield io.mkdirP(binPath);
+                core.info("Downloading magick from: " + LINUX_BIN);
                 const magickPath = yield tc.downloadTool(LINUX_BIN);
                 yield io.mv(magickPath, `${binPath}/magick`);
                 exec.exec("chmod", ["+x", `${binPath}/magick`]);
                 if (doCache) {
+                    core.info("Saving magick binary to the cache: " + month);
                     const cacheId = yield cache.saveCache(paths, cacheKey);
                 }
             }
