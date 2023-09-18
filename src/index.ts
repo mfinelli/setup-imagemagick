@@ -44,7 +44,7 @@ async function run(): Promise<void> {
       const restoreKeys = ["imagemagick-" + os.platform()];
 
       if (doCache) {
-        core.info("Attempting to retrieve from the cache: " + month);
+        core.info("Attempting to retrieve from the cache: " + cacheKey);
         const cacheRestored = await cache.restoreCache(
           paths,
           cacheKey,

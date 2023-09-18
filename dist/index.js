@@ -59,7 +59,7 @@ function run() {
                 const cacheKey = "imagemagick-" + os.platform() + "-" + month;
                 const restoreKeys = ["imagemagick-" + os.platform()];
                 if (doCache) {
-                    core.info("Attempting to retrieve from the cache: " + month);
+                    core.info("Attempting to retrieve from the cache: " + cacheKey);
                     const cacheRestored = yield cache.restoreCache(paths, cacheKey, restoreKeys);
                     core.info("response from cache: " + cacheRestored);
                     if (cacheRestored !== undefined) {
