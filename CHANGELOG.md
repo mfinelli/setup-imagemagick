@@ -1,5 +1,9 @@
 # setup-imagemagick changelog
 
+## v5.0.0 (2023/09/18)
+
+Automatically install `libfuse2` on Ubuntu runners
+
 ## v4.0.0 (2023/09/18)
 
 Add optional `cache` parameter to cache downloaded binary (Ubuntu only)
