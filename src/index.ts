@@ -33,6 +33,11 @@ async function run(): Promise<void> {
     } else if (process.platform === "darwin") {
       exec.exec("brew", ["install", "imagemagick"]);
     } else {
+      let installLibfuse2 = core.getBooleanInput("install-libfuse2");
+      if (installLibfuse2) {
+        await exec.exec("sudo", ["apt-get", "install", "-y", "libfuse2"]);
+      }
+
       const binPath = `${os.homedir}/bin`;
       core.addPath(binPath);
 
@@ -46,8 +51,6 @@ async function run(): Promise<void> {
       if (doCache) {
         core.info("Attempting to retrieve from the cache: " + cacheKey);
         cacheRestored = await cache.restoreCache(paths.slice(), cacheKey);
-
-        core.info("response from cache: " + cacheRestored);
 
         if (cacheRestored !== undefined) {
           core.info("Restored imagemagick from the cache");
