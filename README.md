@@ -4,6 +4,10 @@ This action downloads the latest ImageMagick binary and adds it to the PATH.
 
 ## Inputs
 
+| Name    | Type    | Description                                       |
+| ------- | ------- | ------------------------------------------------- |
+| `cache` | Boolean | Cache the `magick` download (Ubuntu runners only) |
+
 ## Outputs
 
 ## Example usage
