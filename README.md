@@ -10,7 +10,7 @@ This action downloads the latest ImageMagick binary and adds it to the PATH.
 
 ```yaml
 steps:
-  - uses: mfinelli/setup-imagemagick@v2
+  - uses: mfinelli/setup-imagemagick@v3
   - run: magick input.jpg -resize 100x100 output.jpg
 
   # IMPORTANT: on ubuntu-22.04/ubuntu-latest runners it is necessary to
