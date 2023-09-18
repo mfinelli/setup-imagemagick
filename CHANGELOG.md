@@ -1,6 +1,6 @@
 # setup-imagemagick changelog
 
-## unreleased
+## v4.0.0 (2023/09/18)
 
 Add optional `cache` parameter to cache downloaded binary (Ubuntu only)
 
