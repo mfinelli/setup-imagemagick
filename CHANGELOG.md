@@ -1,5 +1,9 @@
 # setup-imagemagick changelog
 
+## v3.0.0 (2023/09/18)
+
+Upgrade to node 20
+
 ## v2.0.1 (2023/09/07)
 
 Upgrade dependencies
