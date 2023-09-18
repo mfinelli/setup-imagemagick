@@ -1,6 +1,6 @@
 {
   "name": "setup-imagemagick",
-  "version": "2.0.1",
+  "version": "3.0.0",
   "description": "GitHub action to setup imagemagick",
   "main": "lib/index.js",
   "scripts": {
@@ -25,6 +25,7 @@
   },
   "homepage": "https://github.com/mfinelli/setup-imagemagick#readme",
   "dependencies": {
+    "@actions/cache": "^3.2.2",
     "@actions/core": "^1.10.1",
     "@actions/exec": "^1.1.1",
     "@actions/io": "^1.1.3",

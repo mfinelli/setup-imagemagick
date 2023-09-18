@@ -2,6 +2,11 @@
 name: Setup ImageMagick
 description: Download the latest ImageMagick binary and add it to the PATH
 author: Mario Finelli
+inputs:
+  cache:
+    description: Cache the magick binary (ubuntu only)
+    required: false
+    default: true
 runs:
   using: node20
   main: dist/index.js

@@ -15,6 +15,7 @@
  */
 
 import * as core from "@actions/core";
+import * as cache from "@actions/cache";
 import * as exec from "@actions/exec";
 import * as io from "@actions/io";
 import * as os from "os";
@@ -33,12 +34,41 @@ async function run(): Promise<void> {
       exec.exec("brew", ["install", "imagemagick"]);
     } else {
       const binPath = `${os.homedir}/bin`;
+      core.addPath(binPath);
+
+      let doCache = core.getBooleanInput("cache");
+      const date = new Date();
+      const month = date.toLocaleString("default", { month: "long" });
+      const paths = [binPath + "/magick"];
+      const cacheKey = "imagemagick-" + os.platform() + "-" + month;
+      const restoreKeys = ["imagemagick-" + os.platform()];
+
+      if (doCache) {
+        core.info("Attempting to retrieve from the cache: " + month);
+        const cacheRestored = await cache.restoreCache(
+          paths,
+          cacheKey,
+          restoreKeys,
+        );
+
+        core.info("response from cache: " + cacheRestored);
+
+        if (cacheRestored !== undefined) {
+          core.info("Restored imagemagick from the cache");
+          return;
+        }
+      }
+
       await io.mkdirP(binPath);
+      core.info("Downloading magick from: " + LINUX_BIN);
       const magickPath = await tc.downloadTool(LINUX_BIN);
       await io.mv(magickPath, `${binPath}/magick`);
       exec.exec("chmod", ["+x", `${binPath}/magick`]);
 
-      core.addPath(binPath);
+      if (doCache) {
+        core.info("Saving magick binary to the cache: " + month);
+        const cacheId = await cache.saveCache(paths, cacheKey);
+      }
     }
   } catch (error) {
     if (error instanceof Error) {
