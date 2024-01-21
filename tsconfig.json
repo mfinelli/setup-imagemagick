@@ -6,7 +6,7 @@
     "rootDir": "src",
     "sourceMap": true,
     "strict": true,
-    "noImplicitAny": true
+    "noImplicitAny": true,
   },
-  "exclude": ["lib", "node_modules", "**/*.test.ts"]
+  "exclude": ["lib", "node_modules", "**/*.test.ts"],
 }
