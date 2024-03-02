@@ -1,5 +1,9 @@
 # setup-imagemagick changelog
 
+## v5.0.1 (2024/03/02)
+
+Update dependencies
+
 ## v5.0.0 (2023/09/18)
 
 Automatically install `libfuse2` on Ubuntu runners
