@@ -1,5 +1,9 @@
 # setup-imagemagick changelog
 
+# v6.0.1 (2025/04/16)
+
+Update dependencies
+
 # v6.0.0 (2025/01/12)
 
 Upgrade `actions/cache` to support the `v2` API:
