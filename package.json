@@ -32,7 +32,7 @@
     "@actions/tool-cache": "^2.0.2"
   },
   "devDependencies": {
-    "@types/node": "^24.0.14",
+    "@types/node": "^24.1.0",
     "@vercel/ncc": "^0.38.3",
     "prettier": "^3.6.2",
     "typescript": "^5.8.3"
