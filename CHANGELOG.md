@@ -1,10 +1,14 @@
 # setup-imagemagick changelog
 
-# v6.0.1 (2025/04/16)
+## v7.0.0 (2025/08/22)
+
+Upgrade to node 24
+
+## v6.0.1 (2025/04/16)
 
 Update dependencies
 
-# v6.0.0 (2025/01/12)
+## v6.0.0 (2025/01/12)
 
 Upgrade `actions/cache` to support the `v2` API:
 https://github.com/actions/toolkit/discussions/1890
