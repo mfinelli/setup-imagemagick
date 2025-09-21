@@ -15,16 +15,20 @@ jobs:
           - ubuntu-latest
     steps:
       - uses: actions/checkout@v5
+      - uses: pnpm/action-setup@v4
+        with:
+          version: latest
       - uses: actions/setup-node@v5
         with:
           node-version: '24'
+          cache: pnpm
 
       - run: sudo apt-get install -y libfuse2
         if: matrix.os == 'ubuntu-latest' || matrix.os == 'ubuntu-22.04' || matrix.os == 'ubuntu-24.04'
 
       # ensure that a PR that doesn't update the dist actually uses the
       # updated code when running the self step
-      - run: npm ci && npm run build && npm run package
+      - run: pnpm install && pnpm run build && pnpm run package
         if: github.event_name == 'pull_request'
 
       - uses: ./
@@ -38,15 +42,19 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
+      - uses: pnpm/action-setup@v4
+        with:
+          version: latest
       - uses: actions/setup-node@v5
         with:
           node-version: '24'
+          cache: pnpm
 
       - run: sudo apt-get install -y libfuse2
 
       # ensure that a PR that doesn't update the dist actually uses the
       # updated code when running the self step
-      - run: npm ci && npm run build && npm run package
+      - run: pnpm install && pnpm run build && pnpm run package
         if: github.event_name == 'pull_request'
 
       - uses: ./
@@ -66,13 +74,17 @@ jobs:
           - ubuntu-24.04
     steps:
       - uses: actions/checkout@v5
+      - uses: pnpm/action-setup@v4
+        with:
+          version: latest
       - uses: actions/setup-node@v5
         with:
           node-version: '24'
+          cache: pnpm
 
       # ensure that a PR that doesn't update the dist actually uses the
       # updated code when running the self step
-      - run: npm ci && npm run build && npm run package
+      - run: pnpm install && pnpm run build && pnpm run package
         if: github.event_name == 'pull_request'
 
       - uses: ./

@@ -4,7 +4,7 @@
   "description": "GitHub action to setup imagemagick",
   "main": "lib/index.js",
   "scripts": {
-    "all": "npm run lint && npm run build && npm run package",
+    "all": "pnpm run lint && pnpm run build && pnpm run package",
     "build": "tsc",
     "fix": "prettier --write **/*.{ts,json,md}",
     "lint": "prettier --check **/*.{ts,json,md}",
@@ -33,7 +33,7 @@
   },
   "devDependencies": {
     "@types/node": "^24.5.2",
-    "@vercel/ncc": "^0.38.3",
+    "@vercel/ncc": "^0.38.4",
     "prettier": "^3.6.2",
     "typescript": "^5.9.2"
   }
