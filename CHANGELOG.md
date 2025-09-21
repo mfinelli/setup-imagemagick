@@ -1,5 +1,9 @@
 # setup-imagemagick changelog
 
+## v7.0.1 (2025/09/21)
+
+Switch internal tooling to use `pnpm` and update dependencies
+
 ## v7.0.0 (2025/08/22)
 
 Upgrade to node 24
