@@ -26,7 +26,7 @@
   "homepage": "https://github.com/mfinelli/setup-imagemagick#readme",
   "dependencies": {
     "@actions/cache": "^4.1.0",
-    "@actions/core": "^1.11.1",
+    "@actions/core": "^2.0.0",
     "@actions/exec": "^1.1.1",
     "@actions/io": "^1.1.3",
     "@actions/tool-cache": "^2.0.2"
