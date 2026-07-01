@@ -32,12 +32,45 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 const core = __nccwpck_require__(16966);
-const cache = __nccwpck_require__(63002);
+const cache = __nccwpck_require__(31866);
 const exec = __nccwpck_require__(92851);
 const io = __nccwpck_require__(60378);
 const os = __nccwpck_require__(70857);
 const tc = __nccwpck_require__(95440);
-const LINUX_BIN = "https://download.imagemagick.org/archive/binaries/magick";
+const GITHUB_API_LATEST = "https://api.github.com/repos/ImageMagick/ImageMagick/releases/latest";
+function getArch() {
+    const arch = os.arch();
+    switch (arch) {
+        case "x64":
+            return "x86_64";
+        case "arm64":
+            return "aarch64";
+        default:
+            return arch;
+    }
+}
+function getLatestAppImageUrl() {
+    return __awaiter(this, void 0, void 0, function* () {
+        const response = yield fetch(GITHUB_API_LATEST, {
+            headers: {
+                Accept: "application/vnd.github+json",
+                "User-Agent": "setup-imagemagick-action",
+            },
+        });
+        if (!response.ok) {
+            throw new Error(`Failed to fetch latest ImageMagick release: ${response.status} ${response.statusText}`);
+        }
+        const release = (yield response.json());
+        const arch = getArch();
+        const suffix = `-${arch}.AppImage`;
+        const appImages = release.assets.filter((a) => a.name.endsWith(suffix));
+        if (appImages.length === 0) {
+            throw new Error(`No ${arch} AppImage found in release ${release.tag_name}`);
+        }
+        const asset = appImages.find((a) => a.name.includes("-gcc-")) || appImages[0];
+        return asset.browser_download_url;
+    });
+}
 function run() {
     return __awaiter(this, void 0, void 0, function* () {
         try {
@@ -71,8 +104,9 @@ function run() {
                     }
                 }
                 yield io.mkdirP(binPath);
-                core.info("Downloading magick from: " + LINUX_BIN);
-                const magickPath = yield tc.downloadTool(LINUX_BIN);
+                const downloadUrl = yield getLatestAppImageUrl();
+                core.info("Downloading magick from: " + downloadUrl);
+                const magickPath = yield tc.downloadTool(downloadUrl);
                 yield io.mv(magickPath, `${binPath}/magick`);
                 exec.exec("chmod", ["+x", `${binPath}/magick`]);
                 if (doCache && cacheRestored === undefined) {
@@ -96,7 +130,7 @@ run();
 
 /***/ }),
 
-/***/ 63002:
+/***/ 31866:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
 "use strict";
@@ -134,15 +168,14 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.saveCache = exports.restoreCache = exports.isFeatureAvailable = exports.ReserveCacheError = exports.ValidationError = void 0;
+exports.saveCache = exports.restoreCache = exports.isFeatureAvailable = exports.FinalizeCacheError = exports.ReserveCacheError = exports.ValidationError = void 0;
 const core = __importStar(__nccwpck_require__(16966));
 const path = __importStar(__nccwpck_require__(16928));
-const utils = __importStar(__nccwpck_require__(89925));
-const cacheHttpClient = __importStar(__nccwpck_require__(14933));
-const cacheTwirpClient = __importStar(__nccwpck_require__(39601));
-const config_1 = __nccwpck_require__(63440);
-const tar_1 = __nccwpck_require__(65679);
-const constants_1 = __nccwpck_require__(86385);
+const utils = __importStar(__nccwpck_require__(72197));
+const cacheHttpClient = __importStar(__nccwpck_require__(86485));
+const cacheTwirpClient = __importStar(__nccwpck_require__(82513));
+const config_1 = __nccwpck_require__(61936);
+const tar_1 = __nccwpck_require__(89135);
 const http_client_1 = __nccwpck_require__(21966);
 class ValidationError extends Error {
     constructor(message) {
@@ -160,6 +193,14 @@ class ReserveCacheError extends Error {
     }
 }
 exports.ReserveCacheError = ReserveCacheError;
+class FinalizeCacheError extends Error {
+    constructor(message) {
+        super(message);
+        this.name = 'FinalizeCacheError';
+        Object.setPrototypeOf(this, FinalizeCacheError.prototype);
+    }
+}
+exports.FinalizeCacheError = FinalizeCacheError;
 function checkPaths(paths) {
     if (!paths || paths.length === 0) {
         throw new ValidationError(`Path Validation Error: At least one directory or file path is required`);
@@ -536,10 +577,6 @@ function saveCacheV2(paths, key, options, enableCrossOsArchive = false) {
             }
             const archiveFileSize = utils.getArchiveFileSizeInBytes(archivePath);
             core.debug(`File Size: ${archiveFileSize}`);
-            // For GHES, this check will take place in ReserveCache API with enterprise file size limit
-            if (archiveFileSize > constants_1.CacheFileSizeLimit && !(0, config_1.isGhes)()) {
-                throw new Error(`Cache size of ~${Math.round(archiveFileSize / (1024 * 1024))} MB (${archiveFileSize} B) is over the 10GB limit, not saving cache.`);
-            }
             // Set the archive size in the options, will be used to display the upload progress
             options.archiveSizeBytes = archiveFileSize;
             core.debug('Reserving Cache');
@@ -552,7 +589,10 @@ function saveCacheV2(paths, key, options, enableCrossOsArchive = false) {
             try {
                 const response = yield twirpClient.CreateCacheEntry(request);
                 if (!response.ok) {
-                    throw new Error('Response was not ok');
+                    if (response.message) {
+                        core.warning(`Cache reservation failed: ${response.message}`);
+                    }
+                    throw new Error(response.message || 'Response was not ok');
                 }
                 signedUploadUrl = response.signedUploadUrl;
             }
@@ -570,6 +610,9 @@ function saveCacheV2(paths, key, options, enableCrossOsArchive = false) {
             const finalizeResponse = yield twirpClient.FinalizeCacheEntryUpload(finalizeRequest);
             core.debug(`FinalizeCacheEntryUploadResponse: ${finalizeResponse.ok}`);
             if (!finalizeResponse.ok) {
+                if (finalizeResponse.message) {
+                    throw new FinalizeCacheError(finalizeResponse.message);
+                }
                 throw new Error(`Unable to finalize cache with key ${key}, another job may be finalizing this cache.`);
             }
             cacheId = parseInt(finalizeResponse.entryId);
@@ -581,6 +624,9 @@ function saveCacheV2(paths, key, options, enableCrossOsArchive = false) {
             }
             else if (typedError.name === ReserveCacheError.name) {
                 core.info(`Failed to save: ${typedError.message}`);
+            }
+            else if (typedError.name === FinalizeCacheError.name) {
+                core.warning(typedError.message);
             }
             else {
                 // Log server errors (5xx) as errors, all other errors as warnings
@@ -610,7 +656,7 @@ function saveCacheV2(paths, key, options, enableCrossOsArchive = false) {
 
 /***/ }),
 
-/***/ 78330:
+/***/ 26394:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
 "use strict";
@@ -626,7 +672,7 @@ const runtime_2 = __nccwpck_require__(68140);
 const runtime_3 = __nccwpck_require__(68140);
 const runtime_4 = __nccwpck_require__(68140);
 const runtime_5 = __nccwpck_require__(68140);
-const cachemetadata_1 = __nccwpck_require__(78662);
+const cachemetadata_1 = __nccwpck_require__(81574);
 // @generated message type with reflection information, may provide speed optimized methods
 class CreateCacheEntryRequest$Type extends runtime_5.MessageType {
     constructor() {
@@ -693,11 +739,12 @@ class CreateCacheEntryResponse$Type extends runtime_5.MessageType {
     constructor() {
         super("github.actions.results.api.v1.CreateCacheEntryResponse", [
             { no: 1, name: "ok", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
-            { no: 2, name: "signed_upload_url", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+            { no: 2, name: "signed_upload_url", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 3, name: "message", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
         ]);
     }
     create(value) {
-        const message = { ok: false, signedUploadUrl: "" };
+        const message = { ok: false, signedUploadUrl: "", message: "" };
         globalThis.Object.defineProperty(message, runtime_4.MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             (0, runtime_3.reflectionMergePartial)(this, message, value);
@@ -713,6 +760,9 @@ class CreateCacheEntryResponse$Type extends runtime_5.MessageType {
                     break;
                 case /* string signed_upload_url */ 2:
                     message.signedUploadUrl = reader.string();
+                    break;
+                case /* string message */ 3:
+                    message.message = reader.string();
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -732,6 +782,9 @@ class CreateCacheEntryResponse$Type extends runtime_5.MessageType {
         /* string signed_upload_url = 2; */
         if (message.signedUploadUrl !== "")
             writer.tag(2, runtime_1.WireType.LengthDelimited).string(message.signedUploadUrl);
+        /* string message = 3; */
+        if (message.message !== "")
+            writer.tag(3, runtime_1.WireType.LengthDelimited).string(message.message);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? runtime_2.UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -815,11 +868,12 @@ class FinalizeCacheEntryUploadResponse$Type extends runtime_5.MessageType {
     constructor() {
         super("github.actions.results.api.v1.FinalizeCacheEntryUploadResponse", [
             { no: 1, name: "ok", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
-            { no: 2, name: "entry_id", kind: "scalar", T: 3 /*ScalarType.INT64*/ }
+            { no: 2, name: "entry_id", kind: "scalar", T: 3 /*ScalarType.INT64*/ },
+            { no: 3, name: "message", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
         ]);
     }
     create(value) {
-        const message = { ok: false, entryId: "0" };
+        const message = { ok: false, entryId: "0", message: "" };
         globalThis.Object.defineProperty(message, runtime_4.MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             (0, runtime_3.reflectionMergePartial)(this, message, value);
@@ -835,6 +889,9 @@ class FinalizeCacheEntryUploadResponse$Type extends runtime_5.MessageType {
                     break;
                 case /* int64 entry_id */ 2:
                     message.entryId = reader.int64().toString();
+                    break;
+                case /* string message */ 3:
+                    message.message = reader.string();
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -854,6 +911,9 @@ class FinalizeCacheEntryUploadResponse$Type extends runtime_5.MessageType {
         /* int64 entry_id = 2; */
         if (message.entryId !== "0")
             writer.tag(2, runtime_1.WireType.Varint).int64(message.entryId);
+        /* string message = 3; */
+        if (message.message !== "")
+            writer.tag(3, runtime_1.WireType.LengthDelimited).string(message.message);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? runtime_2.UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -1005,14 +1065,14 @@ exports.CacheService = new runtime_rpc_1.ServiceType("github.actions.results.api
 
 /***/ }),
 
-/***/ 79332:
+/***/ 35172:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.CacheServiceClientProtobuf = exports.CacheServiceClientJSON = void 0;
-const cache_1 = __nccwpck_require__(78330);
+const cache_1 = __nccwpck_require__(26394);
 class CacheServiceClientJSON {
     constructor(rpc) {
         this.rpc = rpc;
@@ -1080,7 +1140,7 @@ exports.CacheServiceClientProtobuf = CacheServiceClientProtobuf;
 
 /***/ }),
 
-/***/ 78662:
+/***/ 81574:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
 "use strict";
@@ -1092,7 +1152,7 @@ const runtime_2 = __nccwpck_require__(68140);
 const runtime_3 = __nccwpck_require__(68140);
 const runtime_4 = __nccwpck_require__(68140);
 const runtime_5 = __nccwpck_require__(68140);
-const cachescope_1 = __nccwpck_require__(54347);
+const cachescope_1 = __nccwpck_require__(35403);
 // @generated message type with reflection information, may provide speed optimized methods
 class CacheMetadata$Type extends runtime_5.MessageType {
     constructor() {
@@ -1151,7 +1211,7 @@ exports.CacheMetadata = new CacheMetadata$Type();
 
 /***/ }),
 
-/***/ 54347:
+/***/ 35403:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
 "use strict";
@@ -1221,7 +1281,7 @@ exports.CacheScope = new CacheScope$Type();
 
 /***/ }),
 
-/***/ 14933:
+/***/ 86485:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
 "use strict";
@@ -1265,13 +1325,13 @@ const http_client_1 = __nccwpck_require__(21966);
 const auth_1 = __nccwpck_require__(19418);
 const fs = __importStar(__nccwpck_require__(79896));
 const url_1 = __nccwpck_require__(87016);
-const utils = __importStar(__nccwpck_require__(89925));
-const uploadUtils_1 = __nccwpck_require__(5614);
-const downloadUtils_1 = __nccwpck_require__(91873);
-const options_1 = __nccwpck_require__(44650);
-const requestUtils_1 = __nccwpck_require__(48360);
-const config_1 = __nccwpck_require__(63440);
-const user_agent_1 = __nccwpck_require__(31649);
+const utils = __importStar(__nccwpck_require__(72197));
+const uploadUtils_1 = __nccwpck_require__(72718);
+const downloadUtils_1 = __nccwpck_require__(10209);
+const options_1 = __nccwpck_require__(62922);
+const requestUtils_1 = __nccwpck_require__(95400);
+const config_1 = __nccwpck_require__(61936);
+const user_agent_1 = __nccwpck_require__(23681);
 function getCacheApiUrl(resource) {
     const baseUrl = (0, config_1.getCacheServiceURL)();
     if (!baseUrl) {
@@ -1484,7 +1544,7 @@ exports.saveCache = saveCache;
 
 /***/ }),
 
-/***/ 89925:
+/***/ 72197:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
 "use strict";
@@ -1539,7 +1599,7 @@ const fs = __importStar(__nccwpck_require__(79896));
 const path = __importStar(__nccwpck_require__(16928));
 const semver = __importStar(__nccwpck_require__(92131));
 const util = __importStar(__nccwpck_require__(39023));
-const constants_1 = __nccwpck_require__(86385);
+const constants_1 = __nccwpck_require__(26641);
 const versionSalt = '1.0';
 // From https://github.com/actions/toolkit/blob/main/packages/tool-cache/src/tool-cache.ts#L23
 function createTempDirectory() {
@@ -1707,7 +1767,7 @@ exports.getRuntimeToken = getRuntimeToken;
 
 /***/ }),
 
-/***/ 63440:
+/***/ 61936:
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -1751,7 +1811,7 @@ exports.getCacheServiceURL = getCacheServiceURL;
 
 /***/ }),
 
-/***/ 86385:
+/***/ 26641:
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -1795,7 +1855,7 @@ exports.CacheFileSizeLimit = 10 * Math.pow(1024, 3); // 10GiB per repository
 
 /***/ }),
 
-/***/ 91873:
+/***/ 10209:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
 "use strict";
@@ -1841,9 +1901,9 @@ const buffer = __importStar(__nccwpck_require__(20181));
 const fs = __importStar(__nccwpck_require__(79896));
 const stream = __importStar(__nccwpck_require__(2203));
 const util = __importStar(__nccwpck_require__(39023));
-const utils = __importStar(__nccwpck_require__(89925));
-const constants_1 = __nccwpck_require__(86385);
-const requestUtils_1 = __nccwpck_require__(48360);
+const utils = __importStar(__nccwpck_require__(72197));
+const constants_1 = __nccwpck_require__(26641);
+const requestUtils_1 = __nccwpck_require__(95400);
 const abort_controller_1 = __nccwpck_require__(4334);
 /**
  * Pipes the body of a HTTP response to a stream
@@ -2180,7 +2240,7 @@ const promiseWithTimeout = (timeoutMs, promise) => __awaiter(void 0, void 0, voi
 
 /***/ }),
 
-/***/ 48360:
+/***/ 95400:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
 "use strict";
@@ -2221,7 +2281,7 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.retryHttpClientResponse = exports.retryTypedResponse = exports.retry = exports.isRetryableStatusCode = exports.isServerErrorStatusCode = exports.isSuccessStatusCode = void 0;
 const core = __importStar(__nccwpck_require__(16966));
 const http_client_1 = __nccwpck_require__(21966);
-const constants_1 = __nccwpck_require__(86385);
+const constants_1 = __nccwpck_require__(26641);
 function isSuccessStatusCode(statusCode) {
     if (!statusCode) {
         return false;
@@ -2324,7 +2384,7 @@ exports.retryHttpClientResponse = retryHttpClientResponse;
 
 /***/ }),
 
-/***/ 39601:
+/***/ 82513:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
 "use strict";
@@ -2341,14 +2401,14 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.internalCacheTwirpClient = void 0;
 const core_1 = __nccwpck_require__(16966);
-const user_agent_1 = __nccwpck_require__(31649);
-const errors_1 = __nccwpck_require__(17457);
-const config_1 = __nccwpck_require__(63440);
-const cacheUtils_1 = __nccwpck_require__(89925);
+const user_agent_1 = __nccwpck_require__(23681);
+const errors_1 = __nccwpck_require__(16209);
+const config_1 = __nccwpck_require__(61936);
+const cacheUtils_1 = __nccwpck_require__(72197);
 const auth_1 = __nccwpck_require__(19418);
 const http_client_1 = __nccwpck_require__(21966);
-const cache_twirp_client_1 = __nccwpck_require__(79332);
-const util_1 = __nccwpck_require__(24106);
+const cache_twirp_client_1 = __nccwpck_require__(35172);
+const util_1 = __nccwpck_require__(5450);
 /**
  * This class is a wrapper around the CacheServiceClientJSON class generated by Twirp.
  *
@@ -2493,7 +2553,7 @@ exports.internalCacheTwirpClient = internalCacheTwirpClient;
 
 /***/ }),
 
-/***/ 17457:
+/***/ 16209:
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -2570,7 +2630,7 @@ UsageError.isUsageErrorMessage = (msg) => {
 
 /***/ }),
 
-/***/ 31649:
+/***/ 23681:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
 "use strict";
@@ -2578,7 +2638,7 @@ UsageError.isUsageErrorMessage = (msg) => {
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.getUserAgentString = void 0;
 // eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports
-const packageJson = __nccwpck_require__(93965);
+const packageJson = __nccwpck_require__(44917);
 /**
  * Ensure that this User Agent String is used in all HTTP calls so that we can monitor telemetry between different versions of this package
  */
@@ -2590,7 +2650,7 @@ exports.getUserAgentString = getUserAgentString;
 
 /***/ }),
 
-/***/ 24106:
+/***/ 5450:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
 "use strict";
@@ -2671,7 +2731,7 @@ exports.maskSecretUrls = maskSecretUrls;
 
 /***/ }),
 
-/***/ 65679:
+/***/ 89135:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
 "use strict";
@@ -2714,8 +2774,8 @@ const exec_1 = __nccwpck_require__(92851);
 const io = __importStar(__nccwpck_require__(60378));
 const fs_1 = __nccwpck_require__(79896);
 const path = __importStar(__nccwpck_require__(16928));
-const utils = __importStar(__nccwpck_require__(89925));
-const constants_1 = __nccwpck_require__(86385);
+const utils = __importStar(__nccwpck_require__(72197));
+const constants_1 = __nccwpck_require__(26641);
 const IS_WINDOWS = process.platform === 'win32';
 // Returns tar path and type: BSD or GNU
 function getTarPath() {
@@ -2950,7 +3010,7 @@ exports.createTar = createTar;
 
 /***/ }),
 
-/***/ 5614:
+/***/ 72718:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
 "use strict";
@@ -2991,7 +3051,7 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.uploadCacheArchiveSDK = exports.UploadProgress = void 0;
 const core = __importStar(__nccwpck_require__(16966));
 const storage_blob_1 = __nccwpck_require__(46465);
-const errors_1 = __nccwpck_require__(17457);
+const errors_1 = __nccwpck_require__(16209);
 /**
  * Class for tracking the upload state and displaying stats.
  */
@@ -3124,7 +3184,7 @@ exports.uploadCacheArchiveSDK = uploadCacheArchiveSDK;
 
 /***/ }),
 
-/***/ 44650:
+/***/ 62922:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
 "use strict";
@@ -83916,11 +83976,11 @@ function randomUUID() {
 
 /***/ }),
 
-/***/ 93965:
+/***/ 44917:
 /***/ ((module) => {
 
 "use strict";
-module.exports = /*#__PURE__*/JSON.parse('{"name":"@actions/cache","version":"4.0.5","preview":true,"description":"Actions cache lib","keywords":["github","actions","cache"],"homepage":"https://github.com/actions/toolkit/tree/main/packages/cache","license":"MIT","main":"lib/cache.js","types":"lib/cache.d.ts","directories":{"lib":"lib","test":"__tests__"},"files":["lib","!.DS_Store"],"publishConfig":{"access":"public"},"repository":{"type":"git","url":"git+https://github.com/actions/toolkit.git","directory":"packages/cache"},"scripts":{"audit-moderate":"npm install && npm audit --json --audit-level=moderate > audit.json","test":"echo \\"Error: run tests from root\\" && exit 1","tsc":"tsc"},"bugs":{"url":"https://github.com/actions/toolkit/issues"},"dependencies":{"@actions/core":"^1.11.1","@actions/exec":"^1.0.1","@actions/glob":"^0.1.0","@protobuf-ts/runtime-rpc":"^2.11.1","@actions/http-client":"^2.1.1","@actions/io":"^1.0.1","@azure/abort-controller":"^1.1.0","@azure/ms-rest-js":"^2.6.0","@azure/storage-blob":"^12.13.0","semver":"^6.3.1"},"devDependencies":{"@types/node":"^22.13.9","@types/semver":"^6.0.0","@protobuf-ts/plugin":"^2.9.4","typescript":"^5.2.2"}}');
+module.exports = /*#__PURE__*/JSON.parse('{"name":"@actions/cache","version":"4.1.0","preview":true,"description":"Actions cache lib","keywords":["github","actions","cache"],"homepage":"https://github.com/actions/toolkit/tree/main/packages/cache","license":"MIT","main":"lib/cache.js","types":"lib/cache.d.ts","directories":{"lib":"lib","test":"__tests__"},"files":["lib","!.DS_Store"],"publishConfig":{"access":"public"},"repository":{"type":"git","url":"git+https://github.com/actions/toolkit.git","directory":"packages/cache"},"scripts":{"audit-moderate":"npm install && npm audit --json --audit-level=moderate > audit.json","test":"echo \\"Error: run tests from root\\" && exit 1","tsc":"tsc"},"bugs":{"url":"https://github.com/actions/toolkit/issues"},"dependencies":{"@actions/core":"^1.11.1","@actions/exec":"^1.0.1","@actions/glob":"^0.1.0","@protobuf-ts/runtime-rpc":"^2.11.1","@actions/http-client":"^2.1.1","@actions/io":"^1.0.1","@azure/abort-controller":"^1.1.0","@azure/ms-rest-js":"^2.6.0","@azure/storage-blob":"^12.13.0","semver":"^6.3.1"},"devDependencies":{"@types/node":"^22.13.9","@types/semver":"^6.0.0","@protobuf-ts/plugin":"^2.9.4","typescript":"^5.2.2"}}');
 
 /***/ })
 

@@ -22,7 +22,55 @@ import * as os from "os";
 import * as path from "path";
 import * as tc from "@actions/tool-cache";
 
-const LINUX_BIN = "https://download.imagemagick.org/archive/binaries/magick";
+const GITHUB_API_LATEST =
+  "https://api.github.com/repos/ImageMagick/ImageMagick/releases/latest";
+
+function getArch(): string {
+  const arch = os.arch();
+  switch (arch) {
+    case "x64":
+      return "x86_64";
+    case "arm64":
+      return "aarch64";
+    default:
+      return arch;
+  }
+}
+
+async function getLatestAppImageUrl(): Promise<string> {
+  const response = await fetch(GITHUB_API_LATEST, {
+    headers: {
+      Accept: "application/vnd.github+json",
+      "User-Agent": "setup-imagemagick-action",
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error(
+      `Failed to fetch latest ImageMagick release: ${response.status} ${response.statusText}`,
+    );
+  }
+
+  const release = (await response.json()) as {
+    tag_name: string;
+    assets: Array<{ name: string; browser_download_url: string }>;
+  };
+
+  const arch = getArch();
+  const suffix = `-${arch}.AppImage`;
+  const appImages = release.assets.filter((a) => a.name.endsWith(suffix));
+
+  if (appImages.length === 0) {
+    throw new Error(
+      `No ${arch} AppImage found in release ${release.tag_name}`,
+    );
+  }
+
+  const asset =
+    appImages.find((a) => a.name.includes("-gcc-")) || appImages[0];
+
+  return asset.browser_download_url;
+}
 
 async function run(): Promise<void> {
   try {
@@ -59,8 +107,9 @@ async function run(): Promise<void> {
       }
 
       await io.mkdirP(binPath);
-      core.info("Downloading magick from: " + LINUX_BIN);
-      const magickPath = await tc.downloadTool(LINUX_BIN);
+      const downloadUrl = await getLatestAppImageUrl();
+      core.info("Downloading magick from: " + downloadUrl);
+      const magickPath = await tc.downloadTool(downloadUrl);
       await io.mv(magickPath, `${binPath}/magick`);
       exec.exec("chmod", ["+x", `${binPath}/magick`]);
 
