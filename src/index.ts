@@ -25,18 +25,6 @@ import * as tc from "@actions/tool-cache";
 const GITHUB_API_LATEST =
   "https://api.github.com/repos/ImageMagick/ImageMagick/releases/latest";
 
-function getArch(): string {
-  const arch = os.arch();
-  switch (arch) {
-    case "x64":
-      return "x86_64";
-    case "arm64":
-      return "aarch64";
-    default:
-      return arch;
-  }
-}
-
 async function getLatestAppImageUrl(): Promise<string> {
   const response = await fetch(GITHUB_API_LATEST, {
     headers: {
@@ -56,18 +44,15 @@ async function getLatestAppImageUrl(): Promise<string> {
     assets: Array<{ name: string; browser_download_url: string }>;
   };
 
-  const arch = getArch();
-  const suffix = `-${arch}.AppImage`;
-  const appImages = release.assets.filter((a) => a.name.endsWith(suffix));
+  const asset = release.assets.find((a) =>
+    a.name.endsWith("-gcc-x86_64.AppImage"),
+  );
 
-  if (appImages.length === 0) {
+  if (!asset) {
     throw new Error(
-      `No ${arch} AppImage found in release ${release.tag_name}`,
+      `No gcc x86_64 AppImage found in release ${release.tag_name}`,
     );
   }
-
-  const asset =
-    appImages.find((a) => a.name.includes("-gcc-")) || appImages[0];
 
   return asset.browser_download_url;
 }
