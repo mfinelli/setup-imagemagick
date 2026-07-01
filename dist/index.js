@@ -37,7 +37,7 @@ const exec = __nccwpck_require__(92851);
 const io = __nccwpck_require__(60378);
 const os = __nccwpck_require__(70857);
 const tc = __nccwpck_require__(95440);
-const LINUX_BIN = "https://imagemagick.org/archive/binaries/magick";
+const LINUX_BIN = "https://download.imagemagick.org/archive/binaries/magick";
 function run() {
     return __awaiter(this, void 0, void 0, function* () {
         try {
