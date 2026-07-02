@@ -3,7 +3,6 @@
   "version": "8.0.0",
   "description": "GitHub action to setup imagemagick",
   "main": "lib/index.js",
-  "type": "module",
   "scripts": {
     "all": "pnpm run lint && pnpm run test && pnpm run build && pnpm run package",
     "build": "tsc",
