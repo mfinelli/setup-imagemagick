@@ -9,7 +9,7 @@
     "fix": "prettier --write **/*.{ts,json,md}",
     "lint": "prettier --check **/*.{ts,json,md}",
     "package": "ncc build --license licenses.txt",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "jest"
   },
   "repository": {
     "type": "git",
@@ -32,9 +32,12 @@
     "@actions/tool-cache": "^2.0.2"
   },
   "devDependencies": {
+    "@types/jest": "^30.0.0",
     "@types/node": "^24.7.2",
     "@vercel/ncc": "^0.38.4",
+    "jest": "^30.4.2",
     "prettier": "^3.6.2",
+    "ts-jest": "^29.4.11",
     "typescript": "^5.9.3"
   }
 }

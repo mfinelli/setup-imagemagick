@@ -1,2 +1,5 @@
 ---
 minimumReleaseAge: 4320 # 3 days
+
+allowBuilds:
+  unrs-resolver: false

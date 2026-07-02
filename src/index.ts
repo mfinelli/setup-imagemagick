@@ -21,8 +21,33 @@ import * as io from "@actions/io";
 import * as os from "os";
 import * as path from "path";
 import * as tc from "@actions/tool-cache";
+import * as https from "https";
 
-const LINUX_BIN = "https://imagemagick.org/archive/binaries/magick";
+import { extractVersionFromUrl } from "./util";
+
+const LINUX_URL_BASE = "https://github.com/ImageMagick/ImageMagick";
+
+async function getLatestVersionUrl(): Promise<string> {
+  return new Promise((resolve, reject) => {
+    https.get(`${LINUX_URL_BASE}/releases/latest`, (res) => {
+      const { statusCode } = res;
+
+      if (statusCode !== 302) {
+        reject(
+          new Error(`Unable to get latest release (status code: ${statusCode}`),
+        );
+      } else if (String(res.headers["location"]) === "") {
+        reject(
+          new Error(
+            `Unable to get latest release (location: ${res.headers["location"]})`,
+          ),
+        );
+      } else {
+        resolve(String(res.headers["location"]));
+      }
+    });
+  });
+}
 
 async function run(): Promise<void> {
   try {
@@ -59,8 +84,13 @@ async function run(): Promise<void> {
       }
 
       await io.mkdirP(binPath);
-      core.info("Downloading magick from: " + LINUX_BIN);
-      const magickPath = await tc.downloadTool(LINUX_BIN);
+      core.info("Downloading magick from: " + LINUX_URL_BASE);
+      let latestUrl = await getLatestVersionUrl();
+      let version = extractVersionFromUrl(latestUrl);
+      core.info("Downloading version " + version);
+      const magickPath = await tc.downloadTool(
+        `${LINUX_URL_BASE}/releases/download/${version}/ImageMagick-${version}-gcc-x86_64.AppImage`,
+      );
       await io.mv(magickPath, `${binPath}/magick`);
       exec.exec("chmod", ["+x", `${binPath}/magick`]);
 

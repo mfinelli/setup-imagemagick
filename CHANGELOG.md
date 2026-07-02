@@ -1,5 +1,10 @@
 # setup-imagemagick changelog
 
+## unreleased
+
+Switch downloads URL to GitHub (see:
+https://github.com/ImageMagick/ImageMagick/discussions/8831).
+
 ## v7.0.1 (2025/09/21)
 
 Switch internal tooling to use `pnpm` and update dependencies
