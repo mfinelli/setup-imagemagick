@@ -20,39 +20,6 @@ var __webpack_exports__ = {};
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-var __createBinding = (undefined && undefined.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (undefined && undefined.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (undefined && undefined.__importStar) || (function () {
-    var ownKeys = function(o) {
-        ownKeys = Object.getOwnPropertyNames || function (o) {
-            var ar = [];
-            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
-            return ar;
-        };
-        return ownKeys(o);
-    };
-    return function (mod) {
-        if (mod && mod.__esModule) return mod;
-        var result = {};
-        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
-        __setModuleDefault(result, mod);
-        return result;
-    };
-})();
 var __awaiter = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -63,13 +30,13 @@ var __awaiter = (undefined && undefined.__awaiter) || function (thisArg, _argume
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const core = __importStar(require("@actions/core"));
-const cache = __importStar(require("@actions/cache"));
-const exec = __importStar(require("@actions/exec"));
-const io = __importStar(require("@actions/io"));
-const os = __importStar(require("os"));
-const tc = __importStar(require("@actions/tool-cache"));
-const https = __importStar(require("https"));
+const core = require("@actions/core");
+const cache = require("@actions/cache");
+const exec = require("@actions/exec");
+const io = require("@actions/io");
+const os = require("os");
+const tc = require("@actions/tool-cache");
+const https = require("https");
 const util_1 = require("./util");
 const LINUX_URL_BASE = "https://github.com/ImageMagick/ImageMagick";
 function getLatestVersionUrl() {
