@@ -1,6 +1,6 @@
 # setup-imagemagick changelog
 
-## unreleased
+## v8.0.0 (2026/07/02)
 
 Switch downloads URL to GitHub (see:
 https://github.com/ImageMagick/ImageMagick/discussions/8831).
