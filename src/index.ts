@@ -23,7 +23,7 @@ import * as path from "path";
 import * as tc from "@actions/tool-cache";
 import * as https from "https";
 
-import { extractVersionFromUrl } from "./util";
+import { extractVersionFromUrl, getAppImageDownloadUrl } from "./util";
 
 const LINUX_URL_BASE = "https://github.com/ImageMagick/ImageMagick";
 
@@ -87,10 +87,9 @@ async function run(): Promise<void> {
       core.info("Downloading magick from: " + LINUX_URL_BASE);
       let latestUrl = await getLatestVersionUrl();
       let version = extractVersionFromUrl(latestUrl);
-      core.info("Downloading version " + version);
-      const magickPath = await tc.downloadTool(
-        `${LINUX_URL_BASE}/releases/download/${version}/ImageMagick-${version}-gcc-x86_64.AppImage`,
-      );
+      const appImageUrl = await getAppImageDownloadUrl(version);
+      core.info("Downloading version " + version + " from " + appImageUrl);
+      const magickPath = await tc.downloadTool(appImageUrl);
       await io.mv(magickPath, `${binPath}/magick`);
       exec.exec("chmod", ["+x", `${binPath}/magick`]);
 
