@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+import * as https from "https";
+
 export function extractVersionFromUrl(url: string): string {
   const regex =
     /^https:\/\/github\.com\/ImageMagick\/ImageMagick\/releases\/tag\/(.*)$/;
@@ -23,4 +25,42 @@ export function extractVersionFromUrl(url: string): string {
   } else {
     return match[1];
   }
+}
+
+export function getAppImageDownloadUrls(version: string): string[] {
+  return [
+    `https://github.com/ImageMagick/ImageMagick/releases/download/${version}/ImageMagick-${version}-x86_64.AppImage`,
+    `https://github.com/ImageMagick/ImageMagick/releases/download/${version}/ImageMagick-${version}-gcc-x86_64.AppImage`,
+  ];
+}
+
+export function urlExists(url: string): Promise<boolean> {
+  return new Promise((resolve) => {
+    const request = https.get(
+      url,
+      { method: "HEAD" },
+      (response) => {
+        const statusCode = response.statusCode ?? 0;
+        response.resume();
+        resolve(statusCode >= 200 && statusCode < 400);
+      },
+    );
+
+    request.on("error", () => resolve(false));
+  });
+}
+
+export async function getAppImageDownloadUrl(
+  version: string,
+  exists: (url: string) => Promise<boolean> = urlExists,
+): Promise<string> {
+  const urls = getAppImageDownloadUrls(version);
+
+  for (const url of urls) {
+    if (await exists(url)) {
+      return url;
+    }
+  }
+
+  return urls[0];
 }
